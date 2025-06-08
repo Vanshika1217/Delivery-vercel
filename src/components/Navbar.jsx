@@ -8,43 +8,36 @@ const Navbar = ({ admin }) => {
   const [user, setUser] = useState(null);
   const [showCart, setShowCart] = useState(false);
 
-  // Retrieve user and cart data from localStorage or API
+  // Load user and cart data safely from localStorage
   useEffect(() => {
     const loadFromStorage = () => {
-      const userString = localStorage.getItem("user");
-      const cartData = localStorage.getItem("cart");
+      try {
+        const userString = localStorage.getItem("user");
+        const cartData = localStorage.getItem("cart");
 
-      if (userString) {
-        try {
+        if (userString && userString !== "undefined") {
           setUser(JSON.parse(userString));
-        } catch (error) {
-          console.error("Failed to parse user data:", error);
-          localStorage.removeItem("user");
+        } else {
+          setUser(null);
         }
-      } else {
-        setUser(null);
-      }
 
-      if (cartData) {
-        try {
+        if (cartData && cartData !== "undefined") {
           setCart(JSON.parse(cartData));
-        } catch (error) {
-          console.error("Failed to parse cart data:", error);
-          localStorage.removeItem("cart");
+        } else {
+          setCart([]);
         }
-      } else {
+      } catch (error) {
+        console.error("Failed to parse localStorage data:", error);
+        localStorage.removeItem("user");
+        localStorage.removeItem("cart");
+        setUser(null);
         setCart([]);
       }
     };
 
     loadFromStorage();
-
-    // Listen to localStorage changes
     window.addEventListener("storage", loadFromStorage);
-
-    return () => {
-      window.removeEventListener("storage", loadFromStorage);
-    };
+    return () => window.removeEventListener("storage", loadFromStorage);
   }, []);
 
   const handleLogout = () => {
@@ -53,7 +46,7 @@ const Navbar = ({ admin }) => {
     localStorage.removeItem("cart");
     setUser(null);
     setCart([]);
-    navigate("/auth"); // Redirect to the login page after logout
+    navigate("/auth");
   };
 
   const getPortalTitle = () => {
@@ -69,15 +62,9 @@ const Navbar = ({ admin }) => {
     if (user?.role === "delivery_partner") {
       return (
         <>
-          <Link to="/delivery/dashboard" className="hover:text-blue-400 transition-colors duration-200">
-            Dashboard
-          </Link>
-          <Link to="/delivery/orders" className="hover:text-blue-400 transition-colors duration-200">
-            Orders
-          </Link>
-          <Link to="/delivery/profile" className="hover:text-blue-400 transition-colors duration-200">
-            Profile
-          </Link>
+          <Link to="/delivery/dashboard" className="hover:text-blue-400 transition-colors duration-200">Dashboard</Link>
+          <Link to="/delivery/orders" className="hover:text-blue-400 transition-colors duration-200">Orders</Link>
+          <Link to="/delivery/profile" className="hover:text-blue-400 transition-colors duration-200">Profile</Link>
         </>
       );
     }
@@ -85,33 +72,19 @@ const Navbar = ({ admin }) => {
     if (user?.role === "customer") {
       return (
         <>
-          <Link to="/" className="hover:text-blue-400 transition-colors duration-200">
-            Home
-          </Link>
-          <Link to="/orders" className="hover:text-blue-400 transition-colors duration-200">
-            Orders
-          </Link>
-          <Link to="/track-order" className="hover:text-blue-400 transition-colors duration-200">
-            Track Order
-          </Link>
-          <Link to="/profile" className="hover:text-blue-400 transition-colors duration-200">
-            Profile
-          </Link>
+          <Link to="/" className="hover:text-blue-400 transition-colors duration-200">Home</Link>
+          <Link to="/orders" className="hover:text-blue-400 transition-colors duration-200">Orders</Link>
+          <Link to="/track-order" className="hover:text-blue-400 transition-colors duration-200">Track Order</Link>
+          <Link to="/profile" className="hover:text-blue-400 transition-colors duration-200">Profile</Link>
         </>
       );
     }
 
     return (
       <>
-        <Link to="/" className="hover:text-blue-400 transition-colors duration-200">
-          Home
-        </Link>
-        <Link to="/about" className="hover:text-blue-400 transition-colors duration-200">
-          About
-        </Link>
-        <Link to="/contact" className="hover:text-blue-400 transition-colors duration-200">
-          Contact
-        </Link>
+        <Link to="/" className="hover:text-blue-400 transition-colors duration-200">Home</Link>
+        <Link to="/about" className="hover:text-blue-400 transition-colors duration-200">About</Link>
+        <Link to="/contact" className="hover:text-blue-400 transition-colors duration-200">Contact</Link>
       </>
     );
   };
@@ -156,7 +129,6 @@ const Navbar = ({ admin }) => {
   return (
     <nav className="bg-gray-950 text-white shadow-md w-full">
       <div className="flex justify-between items-center h-20 px-6 md:px-12">
-        {/* Logo */}
         <div className="flex-shrink-0">
           <Link
             to={admin ? "/admin/dashboard" : "/"}
@@ -166,11 +138,9 @@ const Navbar = ({ admin }) => {
           </Link>
         </div>
 
-        {/* Navigation Links */}
         <div className="flex items-center space-x-6 md:space-x-10 text-base md:text-lg">
           {getNavigationLinks()}
 
-          {/* Cart and User Info */}
           {user ? (
             <div className="flex items-center space-x-4">
               {user.role === "customer" && <CartSummary />}
